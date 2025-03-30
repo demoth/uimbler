@@ -29,7 +29,6 @@ data class Message(val contactId: Int, val content: String, val isFromMe: Boolea
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
     // Sample data
     val contacts = remember {
         listOf(
