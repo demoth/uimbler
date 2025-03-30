@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -104,7 +106,7 @@ fun App() {
                     }
 
                     Text(
-                        contacts.find { it.id == selectedContactId }?.name ?: "",
+                        "Chat with " + (contacts.find { it.id == selectedContactId }?.name ?: ""),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
@@ -150,12 +152,7 @@ fun App() {
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
                         onClick = {
-                            if (newMessageText.isNotBlank()) {
-                                val messages = messagesMap[selectedContactId] ?: mutableStateListOf()
-                                messages.add(Message(selectedContactId, newMessageText, true))
-                                messagesMap[selectedContactId] = messages
-                                newMessageText = ""
-                            }
+                            extracted(newMessageText, messagesMap, selectedContactId)
                         }
                     ) {
                         Icon(Icons.Default.Send, contentDescription = "Send")
@@ -163,6 +160,20 @@ fun App() {
                 }
             }
         }
+    }
+}
+
+private fun extracted(
+    newMessageText: String,
+    messagesMap: SnapshotStateMap<Int, SnapshotStateList<Message>>,
+    selectedContactId: Int
+) {
+    var newMessageText1 = newMessageText
+    if (newMessageText1.isNotBlank()) {
+        val messages = messagesMap[selectedContactId] ?: mutableStateListOf()
+        messages.add(Message(selectedContactId, newMessageText1, true))
+        messagesMap[selectedContactId] = messages
+        newMessageText1 = ""
     }
 }
 
