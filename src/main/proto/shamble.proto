@@ -1,0 +1,39 @@
+syntax = "proto3";
+package shamble;
+
+option java_multiple_files = false;
+option java_package = "shamble";
+option java_outer_classname = "ShambleInterface";
+
+
+service Shamble {
+  // should be called first and once, subsequent calls will fail
+  rpc Init(InitShamble) returns (InitShambleResponse);
+  rpc GetAudioDevices(Void) returns (AudioDevices);
+  rpc UsePlaybackDevice(PlaybackDevice) returns (Void);
+  rpc UseRecordingDevice(RecordingDevice) returns (Void);
+  rpc StartListenSelf(Void) returns (Void);
+  rpc StopListenSelf(Void) returns (Void);
+  rpc ConnectTo(PubKey) returns (Void);
+}
+
+message InitShamble {
+  optional string secret_key = 1;
+  string name = 2;
+}
+message InitShambleResponse {
+  string secret_key = 1;
+  string public_key = 2;
+}
+
+message Void {}
+
+message AudioDevices {
+  repeated string recording_devices = 1;
+  repeated string playback_devices = 2;
+}
+
+message PlaybackDevice { string device_name = 1; }
+message RecordingDevice { string device_name = 1; }
+
+message PubKey { string key = 1; }
