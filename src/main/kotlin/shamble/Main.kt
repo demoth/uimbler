@@ -1,4 +1,7 @@
+package shamble
+
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import shamble.ShambleInterface.InitShamble
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import io.grpc.ManagedChannelBuilder
+import kotlinx.coroutines.runBlocking
 
 // Data classes for our chat app
 data class Contact(val id: Int, val name: String)
@@ -238,6 +243,19 @@ fun ContactItem(contact: Contact, isSelected: Boolean, onClick: () -> Unit) {
 
 
 fun main() = application {
+
+    val channel = ManagedChannelBuilder
+        .forAddress("localhost", 42147)
+        .usePlaintext()
+        .build()
+
+    val client = ShambleGrpcKt.ShambleCoroutineStub(channel)
+    val result = runBlocking {
+        client.init(InitShamble.newBuilder().setName("Tupitsa").build())
+    }
+
+    println("Result: $result")
+
     Window(
         onCloseRequest = ::exitApplication,
         title = "Hackachat2000"
