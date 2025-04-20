@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ListItem
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -27,6 +28,8 @@ class AppState {
     val nameState: MutableState<String> = mutableStateOf("Demoto")
     val myPublicKeyState: MutableState<String> = mutableStateOf("123")
     val theirsPublicKeyState: MutableState<String> = mutableStateOf("456")
+
+    val playbackDevices = mutableStateOf(mutableListOf<String>())
 
     val channel = ManagedChannelBuilder
         .forAddress("localhost", PORT)
@@ -104,11 +107,29 @@ fun ShambleApp(appState: AppState) {
                             )
                         }
                     appState.myPublicKeyState.value = result.publicKey
-                    println("Connected to backend")
+                    println("Connected to backend, fetching playback devices")
+                    runBlocking {
+                        val audioDevices = appState.client.getAudioDevices(ShambleInterface.Void.newBuilder().build())
+                        appState.playbackDevices.value.clear()
+                        appState.playbackDevices.value.addAll(audioDevices.playbackDevicesList)
+                    }
+
                 },
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Connect to backend")
+            }
+
+            Text("Playback devices:")
+            Column {
+                appState.playbackDevices.value.forEach { device ->
+                    TextButton({
+                        println("Selected $device")
+                    }) {
+                        Text(device)
+                    }
+
+                }
             }
         }
     }
