@@ -29,7 +29,8 @@ class AppState {
     val myPublicKeyState: MutableState<String> = mutableStateOf("123")
     val theirsPublicKeyState: MutableState<String> = mutableStateOf("456")
 
-    val playbackDevices = mutableStateOf(mutableListOf<String>())
+    val playbackDevices = mutableStateOf(listOf<String>())
+    val recordingDevices = mutableStateOf(listOf<String>())
 
     val channel = ManagedChannelBuilder
         .forAddress("localhost", PORT)
@@ -110,8 +111,8 @@ fun ShambleApp(appState: AppState) {
                     println("Connected to backend, fetching playback devices")
                     runBlocking {
                         val audioDevices = appState.client.getAudioDevices(ShambleInterface.Void.newBuilder().build())
-                        appState.playbackDevices.value.clear()
-                        appState.playbackDevices.value.addAll(audioDevices.playbackDevicesList)
+                        appState.playbackDevices.value = audioDevices.playbackDevicesList
+                        appState.recordingDevices.value = audioDevices.recordingDevicesList
                     }
 
                 },
@@ -119,16 +120,27 @@ fun ShambleApp(appState: AppState) {
             ) {
                 Text("Connect to backend")
             }
+            Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+                Column {
+                    Text("Playback devices:")
+                    appState.playbackDevices.value.forEach { device ->
+                        TextButton({
+                            println("Selected playback device: $device")
+                        }) {
+                            Text(device)
+                        }
 
-            Text("Playback devices:")
-            Column {
-                appState.playbackDevices.value.forEach { device ->
-                    TextButton({
-                        println("Selected $device")
-                    }) {
-                        Text(device)
                     }
-
+                }
+                Column {
+                    Text("Recording devices:")
+                    appState.recordingDevices.value.forEach { device ->
+                        TextButton({
+                            println("Selected recording device: $device")
+                        }) {
+                            Text(device)
+                        }
+                    }
                 }
             }
         }
