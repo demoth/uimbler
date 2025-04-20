@@ -17,8 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.grpc.ManagedChannelBuilder
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
+const val PORT = 33445
+const val BACKEND_EXECUTABLE = "./shamble-grpc.AppImage"
 
 // Create a state holder class that can be accessed from anywhere
 class AppState {
@@ -27,10 +29,12 @@ class AppState {
     val theirsPublicKeyState: MutableState<String> = mutableStateOf("456")
 
     val channel = ManagedChannelBuilder
-        .forAddress("localhost", 33445)
+        .forAddress("localhost", PORT)
         .usePlaintext()
         .build()
     val client = ShambleGrpcKt.ShambleCoroutineStub(channel)
+
+    val backendScope = CoroutineScope(Dispatchers.Default)
 
 
     // Update functions that can be called from any thread
@@ -64,7 +68,8 @@ fun ShambleApp(appState: AppState) {
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
                 TextField(
                     label = { Text("My Public Key") },
                     value = appState.myPublicKeyState.value,
@@ -82,9 +87,22 @@ fun ShambleApp(appState: AppState) {
 
             TextButton(
                 onClick = {
-                    val result = runBlocking {
-                        appState.client.init(ShambleInterface.InitShamble.newBuilder().setName(appState.nameState.value).build())
-                    }
+                    appState.backendScope.startService()
+                },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+
+            ) {
+                Text("Start Service")
+            }
+
+            TextButton(
+                onClick = {
+                    val result =
+                        runBlocking {
+                            appState.client.init(
+                                ShambleInterface.InitShamble.newBuilder().setName(appState.nameState.value).build()
+                            )
+                        }
                     appState.myPublicKeyState.value = result.publicKey
                     println("Connected to backend")
                 },
@@ -107,9 +125,25 @@ fun main() = application {
     ) {
         ShambleApp(appState)
     }
+}
 
-
-    /*
-    */
-
+fun CoroutineScope.startService() {
+    val processBuilder = ProcessBuilder(BACKEND_EXECUTABLE)
+    processBuilder.redirectErrorStream(true)
+    processBuilder.environment()["PORT"] = PORT.toString()
+    val process = processBuilder.start()
+    val processOutput = process.inputReader()
+    launch {
+        repeat(10) {
+            println("Waiting for service to start...")
+            println(processOutput.readLine())
+            if (!process.isAlive) {
+                print(".")
+                delay(500)
+            } else {
+                println("Service started!")
+                return@launch
+            }
+        }
+    }
 }
