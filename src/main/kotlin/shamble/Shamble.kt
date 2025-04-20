@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ListItem
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -85,11 +84,24 @@ fun ShambleApp(appState: AppState) {
             }
 
             Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                TextField(
-                    label = { Text("Their Public Key") },
-                    value = appState.theirsPublicKeyState.value,
-                    onValueChange = { appState.updateTheirPublicKey(it) },
-                )
+                Column {
+                    TextField(
+                        label = { Text("Their Public Key") },
+                        value = appState.theirsPublicKeyState.value,
+                        onValueChange = { appState.updateTheirPublicKey(it) },
+                    )
+                    TextButton(
+                        onClick = {
+                            runBlocking {
+                                appState.client.connectTo(
+                                    ShambleInterface.PubKey.newBuilder().setKey(appState.theirsPublicKeyState.value).build()
+                                )
+                            }
+                        },
+                    ) {
+                        Text("Connect")
+                    }
+                }
             }
 
             TextButton(
