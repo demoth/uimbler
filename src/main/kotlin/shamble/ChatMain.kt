@@ -1,7 +1,6 @@
 package shamble
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import shamble.ShambleInterface.InitShamble
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

@@ -26,6 +26,13 @@ class AppState {
     val myPublicKeyState: MutableState<String> = mutableStateOf("123")
     val theirsPublicKeyState: MutableState<String> = mutableStateOf("456")
 
+    val channel = ManagedChannelBuilder
+        .forAddress("localhost", 33445)
+        .usePlaintext()
+        .build()
+    val client = ShambleGrpcKt.ShambleCoroutineStub(channel)
+
+
     // Update functions that can be called from any thread
     fun updateName(newName: String) {
         // When called from a non-UI thread, ensure updates happen on the UI thread
@@ -75,11 +82,15 @@ fun ShambleApp(appState: AppState) {
 
             TextButton(
                 onClick = {
-                    println("connected!")
+                    val result = runBlocking {
+                        appState.client.init(ShambleInterface.InitShamble.newBuilder().setName(appState.nameState.value).build())
+                    }
+                    appState.myPublicKeyState.value = result.publicKey
+                    println("Connected to backend")
                 },
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
-                Text("Connect")
+                Text("Connect to backend")
             }
         }
     }
@@ -97,16 +108,8 @@ fun main() = application {
         ShambleApp(appState)
     }
 
-    val channel = ManagedChannelBuilder
-        .forAddress("localhost", 33445)
-        .usePlaintext()
-        .build()
 
-    val client = ShambleGrpcKt.ShambleCoroutineStub(channel)
-    val result = runBlocking {
-        client.init(ShambleInterface.InitShamble.newBuilder().setName(appState.nameState.value).build())
-    }
-
-    appState.myPublicKeyState.value = result.publicKey
+    /*
+    */
 
 }
