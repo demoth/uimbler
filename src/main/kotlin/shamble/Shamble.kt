@@ -35,7 +35,7 @@ class AppState {
     val selectedRecordingDevice = mutableStateOf<String?>(null)
 
     val channel = ManagedChannelBuilder
-        .forAddress("localhost", PORT)
+        .forAddress("127.0.0.1", PORT)
         .usePlaintext()
         .build()
     val client = ShambleGrpcKt.ShambleCoroutineStub(channel)

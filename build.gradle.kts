@@ -30,12 +30,12 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "MainKt"
+        mainClass = "shamble.ShambleKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.AppImage, TargetFormat.Exe)
             packageName = "compose-app-1"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
         }
     }
 }
