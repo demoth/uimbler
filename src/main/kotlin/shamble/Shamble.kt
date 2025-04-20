@@ -130,6 +130,11 @@ fun ShambleApp(appState: AppState) {
                         TextButton({
                             appState.selectedPlaybackDevice.value = device
                             println("Selected playback device: $device")
+                            runBlocking {
+                                appState.client.usePlaybackDevice(
+                                    ShambleInterface.PlaybackDevice.newBuilder().setDeviceName(appState.selectedPlaybackDevice.value).build()
+                                )
+                            }
                         }) {
                             Text(
                                 if (device == appState.selectedPlaybackDevice.value) { " Selected: $device" } else { device },
@@ -144,6 +149,12 @@ fun ShambleApp(appState: AppState) {
                         TextButton({
                             appState.selectedRecordingDevice.value = device
                             println("Selected recording device: $device")
+                            runBlocking {
+                                appState.client.useRecordingDevice(
+                                    ShambleInterface.RecordingDevice.newBuilder().setDeviceName(appState.selectedRecordingDevice.value).build()
+                                )
+                            }
+
                         }) {
                             Text(
                                 if (device == appState.selectedRecordingDevice.value) { " Selected: $device" } else { device }
