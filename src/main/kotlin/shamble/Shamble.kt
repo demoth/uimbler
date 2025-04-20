@@ -32,6 +32,9 @@ class AppState {
     val playbackDevices = mutableStateOf(listOf<String>())
     val recordingDevices = mutableStateOf(listOf<String>())
 
+    val selectedPlaybackDevice = mutableStateOf<String?>(null)
+    val selectedRecordingDevice = mutableStateOf<String?>(null)
+
     val channel = ManagedChannelBuilder
         .forAddress("localhost", PORT)
         .usePlaintext()
@@ -125,9 +128,12 @@ fun ShambleApp(appState: AppState) {
                     Text("Playback devices:")
                     appState.playbackDevices.value.forEach { device ->
                         TextButton({
+                            appState.selectedPlaybackDevice.value = device
                             println("Selected playback device: $device")
                         }) {
-                            Text(device)
+                            Text(
+                                if (device == appState.selectedPlaybackDevice.value) { " Selected: $device" } else { device },
+                            )
                         }
 
                     }
@@ -136,9 +142,12 @@ fun ShambleApp(appState: AppState) {
                     Text("Recording devices:")
                     appState.recordingDevices.value.forEach { device ->
                         TextButton({
+                            appState.selectedRecordingDevice.value = device
                             println("Selected recording device: $device")
                         }) {
-                            Text(device)
+                            Text(
+                                if (device == appState.selectedRecordingDevice.value) { " Selected: $device" } else { device }
+                            )
                         }
                     }
                 }
