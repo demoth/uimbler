@@ -44,6 +44,8 @@ class AppState {
 
     val backendScope = CoroutineScope(Dispatchers.Default)
 
+    var shambleProcess: Process? = null
+
 
     // Update functions that can be called from any thread
     fun updateName(newName: String) {
@@ -108,7 +110,7 @@ fun ShambleApp(appState: AppState) {
 
             TextButton(
                 onClick = {
-                    appState.backendScope.startServiceOrEnsureRunning()
+                    appState.backendScope.startServiceOrEnsureRunning(appState)
                 },
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
 
@@ -187,14 +189,17 @@ fun main() = application {
     val appState = AppState()
 
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = {
+            appState.shambleProcess?.destroy()
+            exitApplication()
+        },
         title = "Hackachat2000"
     ) {
         ShambleApp(appState)
     }
 }
 
-fun CoroutineScope.startServiceOrEnsureRunning() {
+fun CoroutineScope.startServiceOrEnsureRunning(appState: AppState) {
     try {
         Socket(SHAMBLE_HOST, SHAMBLE_PORT).use {
             println("Service is already running on port $SHAMBLE_PORT")
@@ -207,18 +212,20 @@ fun CoroutineScope.startServiceOrEnsureRunning() {
     val processBuilder = ProcessBuilder(BACKEND_EXECUTABLE)
     processBuilder.redirectErrorStream(true)
     processBuilder.environment()["PORT"] = SHAMBLE_PORT.toString()
-    val process = processBuilder.start()
-    val processOutput = process.inputReader()
-    launch {
-        repeat(10) {
-            println("Waiting for service to start...")
-            println(processOutput.readLine())
-            if (!process.isAlive) {
-                print(".")
-                delay(500)
-            } else {
-                println("Service started!")
-                return@launch
+    appState.shambleProcess = processBuilder.start()
+    appState.shambleProcess?.let { process ->
+        val processOutput = process.inputReader()
+        launch {
+            repeat(10) {
+                println("Waiting for service to start...")
+                println(processOutput.readLine())
+                if (!process.isAlive) {
+                    print(".")
+                    delay(500)
+                } else {
+                    println("Service started!")
+                    return@launch
+                }
             }
         }
     }
