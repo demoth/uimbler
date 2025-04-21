@@ -13,4 +13,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "compose-app-1"
+rootProject.name = "uimbler"

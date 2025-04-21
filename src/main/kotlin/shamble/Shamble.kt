@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.*
 import java.net.Socket
@@ -26,7 +27,7 @@ private const val BACKEND_EXECUTABLE = "./shamble-grpc.0.3.0.AppImage"
 
 // Create a state holder class that can be accessed from anywhere
 class AppState {
-    val nameState: MutableState<String> = mutableStateOf("Demoto")
+    val nameState: MutableState<String> = mutableStateOf("UserName")
     val myPublicKeyState: MutableState<String> = mutableStateOf("123")
     val theirsPublicKeyState: MutableState<String> = mutableStateOf("456")
 
@@ -36,7 +37,7 @@ class AppState {
     val selectedPlaybackDevice = mutableStateOf<String?>(null)
     val selectedRecordingDevice = mutableStateOf<String?>(null)
 
-    val channel = ManagedChannelBuilder
+    val channel: ManagedChannel = ManagedChannelBuilder
         .forAddress(SHAMBLE_HOST, SHAMBLE_PORT)
         .usePlaintext()
         .build()
@@ -205,7 +206,7 @@ fun CoroutineScope.startServiceOrEnsureRunning(appState: AppState) {
             println("Service is already running on port $SHAMBLE_PORT")
             return
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         println("No service found on port $SHAMBLE_PORT, starting new instance...")
     }
 
