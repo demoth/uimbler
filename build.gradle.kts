@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "org.demoth"
-version = "1.0-SNAPSHOT"
+version = "1.3.0"
 
 repositories {
     mavenCentral()
@@ -35,7 +35,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.AppImage, TargetFormat.Exe)
             packageName = "compose-app-1"
-            packageVersion = "1.0.1"
+            packageVersion = project.version.toString()
         }
     }
 }

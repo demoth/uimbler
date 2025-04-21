@@ -18,9 +18,11 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.*
+import java.net.Socket
 
-const val PORT = 33445
-const val BACKEND_EXECUTABLE = "./shamble-grpc.AppImage"
+private const val SHAMBLE_PORT = 33445
+private const val SHAMBLE_HOST = "127.0.0.1"
+private const val BACKEND_EXECUTABLE = "./shamble-grpc.0.3.0.AppImage"
 
 // Create a state holder class that can be accessed from anywhere
 class AppState {
@@ -35,7 +37,7 @@ class AppState {
     val selectedRecordingDevice = mutableStateOf<String?>(null)
 
     val channel = ManagedChannelBuilder
-        .forAddress("127.0.0.1", PORT)
+        .forAddress(SHAMBLE_HOST, SHAMBLE_PORT)
         .usePlaintext()
         .build()
     val client = ShambleGrpcKt.ShambleCoroutineStub(channel)
@@ -106,12 +108,12 @@ fun ShambleApp(appState: AppState) {
 
             TextButton(
                 onClick = {
-                    appState.backendScope.startService()
+                    appState.backendScope.startServiceOrEnsureRunning()
                 },
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
 
             ) {
-                Text("Start Service")
+                Text("Start/Connect to Service")
             }
 
             TextButton(
@@ -192,10 +194,19 @@ fun main() = application {
     }
 }
 
-fun CoroutineScope.startService() {
+fun CoroutineScope.startServiceOrEnsureRunning() {
+    try {
+        Socket(SHAMBLE_HOST, SHAMBLE_PORT).use {
+            println("Service is already running on port $SHAMBLE_PORT")
+            return
+        }
+    } catch (e: Exception) {
+        println("No service found on port $SHAMBLE_PORT, starting new instance...")
+    }
+
     val processBuilder = ProcessBuilder(BACKEND_EXECUTABLE)
     processBuilder.redirectErrorStream(true)
-    processBuilder.environment()["PORT"] = PORT.toString()
+    processBuilder.environment()["PORT"] = SHAMBLE_PORT.toString()
     val process = processBuilder.start()
     val processOutput = process.inputReader()
     launch {
